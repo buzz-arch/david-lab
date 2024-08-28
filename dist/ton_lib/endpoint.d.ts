@@ -1,0 +1,12 @@
+import { TonClient4, TonClient, Sender } from "@ton/ton";
+import { Api } from 'tonapi-sdk-js';
+import TonWeb from "tonweb";
+import { WalletPair } from "./types";
+export declare let tonapiClient: Api<any>;
+export declare let lc4: TonClient4;
+export declare let tonClient: TonClient;
+export declare const tonGetClient: () => Promise<TonClient>;
+export declare function getTonWebClient(): Promise<TonWeb>;
+export declare const tonApiClient: () => Promise<Api<unknown>>;
+export declare const getTon4Client: (_configUrl: string) => Promise<TonClient4>;
+export declare function tonSender(signer: WalletPair): Promise<Sender>;

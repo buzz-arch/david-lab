@@ -1,0 +1,9 @@
+[0719/165842.149:ERROR:crashpad_client_win.cc(188)] crash server did not respond, self-terminating
+[0719/165842.249:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0719/231516.140:ERROR:crashpad_client_win.cc(188)] crash server did not respond, self-terminating
+[0719/231517.825:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0719/231517.841:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0719/231517.934:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0719/231518.124:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0719/231519.420:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0719/231520.666:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)

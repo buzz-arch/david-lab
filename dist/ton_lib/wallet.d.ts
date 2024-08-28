@@ -1,0 +1,11 @@
+import { WalletContractV4 } from '@ton/ton';
+import { Address, Cell } from "@ton/core";
+import { WalletPair } from "./types";
+import { TonConnectUI } from "@tonconnect/ui-react";
+export declare const tonWalletImport: (mnemonic: string | string[]) => Promise<WalletPair>;
+export declare const tonWalletCreate: () => Promise<WalletPair>;
+export declare function tonWalletGetBalance(address: Address | string): Promise<string>;
+export declare const tonWalletSendCoin: (who: WalletPair, to: string, amount: number, body?: string | Cell | undefined) => Promise<void>;
+export declare const tonUiWalletSendCoin: (who: TonConnectUI, to: string, amount: number, body?: Cell | undefined) => Promise<void>;
+export declare const tonWalletGetSeqNo: (wallet: any) => Promise<any>;
+export declare function tonWalletLatestTxHash(signer: WalletPair | WalletContractV4 | string): Promise<string>;
