@@ -1,11 +1,14 @@
 import { Pool } from '@dedust/sdk';
 import { Address, OpenedContract } from '@ton/core';
-import { WalletPair } from '../types';
+import { PoolReserve, TonAddress, WalletPair } from '../types';
+import { TonConnectUI } from '@tonconnect/ui-react';
 export declare function dedustGetPool(jetton: Address | string): Promise<OpenedContract<Pool> | undefined>;
 export declare function dedustPoolFind(jetton: Address): Promise<(string | boolean)[]>;
 export declare function dedustPoolCreate(signer: WalletPair, tokenAddr: string, tokenDecimals: number, _amountJ: number, _amountT: number): Promise<string>;
-export declare const dedustBuy: (signer: WalletPair, jetton: string, tonAmount: number) => Promise<(string | boolean)[] | undefined>;
-export declare const dedustSell: (signer: WalletPair, jetton: string, jettonAmount: number) => Promise<(string | boolean)[] | undefined>;
+export declare function dedustBuy(signer: TonConnectUI | WalletPair, jetton: string, tonAmount: number): Promise<(string | boolean)[] | undefined>;
+export declare const dedustSell: (signer: TonConnectUI | WalletPair, jetton: string, jettonAmount: number) => Promise<(string | boolean)[] | undefined>;
 export declare function dedustLPWithdraw(signer: WalletPair, jetton: string, amount?: number | undefined): Promise<void>;
 export declare function dedustLPBurn(signer: WalletPair, jetton: string, amount?: number | undefined): Promise<void>;
 export declare function dedustLpQuery(who: WalletPair | Address | string, jetton: string): Promise<number>;
+export declare function dedustQueryPoolBalances(jetton: Address | string): Promise<PoolReserve | undefined>;
+export declare function tonDedustConfirmBuy(who: TonAddress, token: Address | string, callback?: any, timeout?: number): Promise<void>;

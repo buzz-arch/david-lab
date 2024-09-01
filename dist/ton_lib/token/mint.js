@@ -18,8 +18,8 @@ async function tonTokenMint(signer, token, amount, to = undefined) {
     if (!jettonInfo)
         return;
     const decimals = jettonInfo.decimals;
-    const seqNo = await (0, wallet_1.tonWalletGetSeqNo)(signer.wallet);
+    const seqNo = await (0, wallet_1.tonWalletGetSeqNo)(signer);
     await jettonMinter.sendMint(sender, mintTo, (0, bignumber_1.toDecimalsBN)(amount, decimals), (0, core_1.toNano)(0), (0, core_1.toNano)(0.01));
-    await (0, transaction_1.tonTrWait)(signer.wallet, seqNo);
+    await (0, transaction_1.tonTrWait)(signer, seqNo);
 }
 exports.tonTokenMint = tonTokenMint;

@@ -1,11 +1,11 @@
 
 import { mnemonicToWalletKey, mnemonicNew, KeyPair, mnemonicToPrivateKey } from "@ton/crypto";
-import { tonClient, tonGetClient } from "./endpoint";
+import { tonApiClient, tonClient, tonGetClient } from "./endpoint";
 import { JettonWallet, WalletContractV4 } from '@ton/ton';
 import { sleep } from "../utils/basic";
 import { internal, Address, fromNano, Cell, toNano } from "@ton/core";
 import { TESTONLY, WORKCHAIN } from "./common";
-import { WalletPair } from "./types";
+import { TonAddress, WalletPair } from "./types";
 import { tonTrGetHash, tonTrWait } from "./transaction";
 import { tonAddr, tonAddrStr } from './address/index';
 import { TonConnectUI } from "@tonconnect/ui-react";
@@ -24,17 +24,10 @@ export const tonWalletCreate = async () => {
   return await tonWalletImport(mnemonics)
 }
 
-export async function tonWalletGetBalance(address: Address | string): Promise<string> {
-  let addr: Address;
-  if (!(address instanceof Address)) {
-    addr = Address.parse(address)
-  } else {
-    addr = address;
-  }
-
-  const client = await tonGetClient();
-  const balance = await client.getBalance(addr);
-  return fromNano(balance)
+export async function tonWalletGetBalance(address: TonAddress): Promise<string> {
+  const apiClient = await tonApiClient();
+  const apiResp = await apiClient.accounts.getAccount(tonAddrStr(address))
+  return fromNano(apiResp.balance)
 }
 
 export const tonWalletSendCoin = async (who: WalletPair, to: string, amount: number, body: string|Cell|undefined = undefined) => {
@@ -56,7 +49,7 @@ export const tonWalletSendCoin = async (who: WalletPair, to: string, amount: num
     ]
   })
 
-  await tonTrWait(who.wallet, seqno)
+  await tonTrWait(who, seqno)
   console.log(`[DAVID](tonWalletSendCoin) transaction confirmed`)
   while(true) {
     const balance = await walletContract.getBalance()
@@ -72,32 +65,33 @@ export const tonUiWalletSendCoin = async (who: TonConnectUI, to: string, amount:
     return
 
   const senderAddr:string = tonAddrStr(who.account?.address)
-  const walletContract = client.open(WalletContractV4.create({workchain: 0, publicKey: Buffer.from(senderAddr)}))
-  const seqno = await walletContract.getSeqno();
-  const oldBalance = await walletContract.getBalance()
+  const oldBalance = await tonWalletGetBalance(senderAddr)
   const sender = tonUiSender(who)
-
+  const seqno = await tonWalletGetSeqNo(senderAddr);
+  console.log(`[DAVID](tonUiWalletSendCoin) current seqno =`, seqno)
   await sender.send({
     value: toNano(amount),
     to: tonAddr(to),
     body: body ? body : Cell.EMPTY
   })
-  
-  await tonTrWait(who.wallet, seqno)
+  console.log(`[DAVID](tonUiWalletSendCoin) waiting for wallet seq ...`)
+  await tonTrWait(senderAddr, seqno)
+  // while(true) {
+  //   const balance = await tonWalletGetBalance(senderAddr)
+  //   if (oldBalance !== balance)
+  //     break
+  //   await sleep(1000)
+  // }
   console.log(`[DAVID](tonWalletSendCoin) transaction confirmed`)
-  while(true) {
-    const balance = await walletContract.getBalance()
-    if (oldBalance !== balance)
-      break
-    await sleep(1000)
-  }
 }
 
-export const tonWalletGetSeqNo = async (wallet: any) => {
-  const tonClient = await tonGetClient()
-  const w = tonClient.open(wallet)
-  const seqno = await w.getSeqno()
-  return seqno
+export const tonWalletGetSeqNo = async (wallet: TonAddress) => {
+  // const tonClient = await tonGetClient()
+  // const w = tonClient.open(wallet)
+  // const seqno = await w.getSeqno()
+  const apiClient = await tonApiClient()
+  const seqno = await apiClient.wallet.getAccountSeqno(tonAddrStr(wallet))
+  return seqno.seqno
 }
 
 export async function tonWalletLatestTxHash(signer: WalletPair|WalletContractV4|string): Promise<string> {

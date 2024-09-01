@@ -7,6 +7,7 @@ const core_1 = require("@ton/core");
 const query_1 = require("./query");
 const bignumber_1 = require("../../utils/bignumber");
 const transaction_1 = require("../transaction");
+const wallet_1 = require("../wallet");
 async function tonTokenTransfer(signer, token, to, amount, forwardPayload = undefined, forwardAmount = undefined) {
     const tonClient = await (0, endpoint_1.tonGetClient)();
     const wallet = tonClient.open(signer.wallet);
@@ -24,7 +25,7 @@ async function tonTokenTransfer(signer, token, to, amount, forwardPayload = unde
         forwardAmount: (0, core_1.toNano)(forwardAmount || 0),
         forwardPayload: forwardPayload || core_1.Cell.EMPTY,
     });
-    await (0, transaction_1.tonTrWait)(wallet, seqNo);
+    await (0, transaction_1.tonTrWait)(signer, seqNo);
     console.log(`[DAVID](TON-TOKEN) tonTokenTransfer :: ${amount} jetton(${token}) transfered from ${wallet.address.toString()} - ${to}`);
 }
 exports.tonTokenTransfer = tonTokenTransfer;
@@ -56,6 +57,7 @@ async function tonUiTokenTransfer(connect, token, to, amount, forwardPayload = u
     const jettonWallet = tonClient.open(await jetton.getWallet(senderAddr));
     const jettonDetails = await (0, query_1.tonTokenInfo)(token);
     const trAmount = (0, bignumber_1.toDecimalsBN)(amount, jettonDetails?.decimals || 6);
+    const seqno = await (0, wallet_1.tonWalletGetSeqNo)(senderAddr);
     await jettonWallet.sendTransfer(sender, (0, core_1.toNano)(0.25 + (forwardAmount || 0)), {
         destination: core_1.Address.parse(to),
         amount: trAmount,
@@ -63,6 +65,7 @@ async function tonUiTokenTransfer(connect, token, to, amount, forwardPayload = u
         forwardAmount: (0, core_1.toNano)(forwardAmount || 0),
         forwardPayload: forwardPayload || core_1.Cell.EMPTY,
     });
+    await (0, transaction_1.tonTrWait)(senderAddr, seqno);
     console.log(`[DAVID](TON-TOKEN) tonTokenTransfer :: ${amount} jetton(${token}) transfered from ${senderAddr} - ${to}`);
 }
 exports.tonUiTokenTransfer = tonUiTokenTransfer;

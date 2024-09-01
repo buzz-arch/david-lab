@@ -6,10 +6,10 @@ import { sleep } from "../utils/basic";
 
 dotenv.config();
 
-export const NETWORK = process.env.NETWORK == undefined ? 'testnet' : process.env.NETWORK;
+export const NETWORK = process.env.NETWORK||process.env.NEXT_PUBLIC_NETWORK|| 'testnet';
 export const WORKCHAIN = process.env.WORKCHAIN ? parseInt(process.env.WORKCHAIN) : 0;
 export const TESTONLY = NETWORK == 'testnet' ? true : false;
-export const DEPLOY_GAS = process.env.DEPLOY_GAS != undefined ? parseFloat(process.env.DEPLOY_GAS) : 0.25;
+export const DEPLOY_GAS = process.env.DEPLOY_GAS != undefined ? parseFloat(process.env.DEPLOY_GAS) : 0.07;
 export const JETTON_RENT = process.env.TOKEN_RENT != undefined ? parseFloat(process.env.TOKEN_RENT) : 0.02;
 
 let curTonPrice:number = 0
@@ -28,7 +28,7 @@ async function tonlibTask() {
     try {
       await fetchPrice()
     } catch (error) {}
-    await sleep(3000)
+    await sleep(5000)
   }
 }
 

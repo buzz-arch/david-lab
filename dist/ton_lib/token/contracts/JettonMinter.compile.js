@@ -73,7 +73,7 @@ class JettonMinter {
         await provider.internal(via, {
             sendMode: core_1.SendMode.PAY_GAS_SEPARATELY,
             body: JettonMinter.mintMessage(this.address, to, jetton_amount, forward_ton_amount, total_ton_amount),
-            value: total_ton_amount + (0, core_1.toNano)('0.015'),
+            value: total_ton_amount,
         });
     }
     /* provide_wallet_address#2c76b973 query_id:uint64 owner_address:MsgAddress include_address:Bool = InternalMsgBody;

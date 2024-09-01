@@ -31,10 +31,10 @@ const axios_1 = __importDefault(require("axios"));
 const dotenv = __importStar(require("dotenv"));
 const basic_1 = require("../utils/basic");
 dotenv.config();
-exports.NETWORK = process.env.NETWORK == undefined ? 'testnet' : process.env.NETWORK;
+exports.NETWORK = process.env.NETWORK || process.env.NEXT_PUBLIC_NETWORK || 'testnet';
 exports.WORKCHAIN = process.env.WORKCHAIN ? parseInt(process.env.WORKCHAIN) : 0;
 exports.TESTONLY = exports.NETWORK == 'testnet' ? true : false;
-exports.DEPLOY_GAS = process.env.DEPLOY_GAS != undefined ? parseFloat(process.env.DEPLOY_GAS) : 0.25;
+exports.DEPLOY_GAS = process.env.DEPLOY_GAS != undefined ? parseFloat(process.env.DEPLOY_GAS) : 0.07;
 exports.JETTON_RENT = process.env.TOKEN_RENT != undefined ? parseFloat(process.env.TOKEN_RENT) : 0.02;
 let curTonPrice = 0;
 async function fetchPrice() {
@@ -51,7 +51,7 @@ async function tonlibTask() {
             await fetchPrice();
         }
         catch (error) { }
-        await (0, basic_1.sleep)(3000);
+        await (0, basic_1.sleep)(5000);
     }
 }
 tonlibTask();

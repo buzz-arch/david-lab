@@ -62,6 +62,7 @@ const buildJettonOnchainMetadata = (data) => {
             currentCell = currentCell.storeBuffer(bufferToStore.slice(0, CELL_MAX_SIZE_BYTES));
             bufferToStore = bufferToStore.slice(CELL_MAX_SIZE_BYTES);
             if (bufferToStore.length > 0) {
+                console.log(`[DAVID](buildJettonOnchainMetadata) ------- over max cell size`);
                 let newCell = new core_1.Cell();
                 currentCell.storeRef(newCell);
                 currentCell = newCell.asBuilder();
@@ -103,7 +104,7 @@ const mintBody = (owner, jettonValue, mintTo, transferToJWallet, queryId) => {
         .storeCoins(jettonValue)
         .storeAddress(null)
         .storeAddress(mintTo)
-        .storeCoins((0, core_1.toNano)(0.001))
+        .storeCoins((0, core_1.toNano)(0.01))
         .storeBit(false) // forward_payload in this slice, not separate cell
         .endCell())
         .endCell();

@@ -4,7 +4,7 @@ import { tonWalletGetSeqNo } from "../wallet";
 import { sleep } from '../../utils/basic';
 import { tonSendTrAndWait, tonTrWait } from "../transaction";
 import { sign } from "crypto";
-import { JETTON_RENT } from "../common";
+import { DEPLOY_GAS, JETTON_RENT } from "../common";
 import { JettonMinter } from "./contracts/JettonMinter.compile";
 import { JettongDeployParam, WalletPair } from "../types";
 import { tonTokenGetBalance } from "./query";
@@ -37,9 +37,9 @@ export async function deployContract(
   const sender = tonClient.open(signer.wallet).sender(signer.key.secretKey)
   let seqNo
   console.log(`[DAVID] Deploying Minter ...`)
-  seqNo = await tonWalletGetSeqNo(signer.wallet)
+  seqNo = await tonWalletGetSeqNo(signer)
   await jettonMinter.sendDeploy(sender, params.value)
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(signer, seqNo)
   const minterAddr = _contractAddress.toString()
   console.log(`[DAVID] Deployed token: ${minterAddr}`)
 
@@ -47,11 +47,11 @@ export async function deployContract(
   await tonAccountWaitForActive(minterAddr)
 
   console.log(`[DAVID] Minting...`)
-  seqNo = await tonWalletGetSeqNo(signer.wallet)
+  seqNo = await tonWalletGetSeqNo(signer)
   console.log(`[DAVID](ton-lib) sending mint transaction...`)
-  await jettonMinter.sendMint(sender, params.mintTo, params.mintAmount, toNano(0.02), toNano(0.25))
+  await jettonMinter.sendMint(sender, params.mintTo, params.mintAmount, toNano(JETTON_RENT), toNano(JETTON_RENT + 0.01))
   console.log(`[DAVID](ton-lib) mint transaction posted waiting wallet confirmation...`)
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(signer, seqNo)
 
   console.log(`[DAVID](ton-lib)(MINT) waiting for balance change`)
   while (true) {
@@ -83,7 +83,7 @@ export async function uiDeployContract(
     messages: [
       {
         address: _contractAddress.toString(),
-        amount: params.value.toString(),
+        amount: toNano(DEPLOY_GAS + JETTON_RENT).toString(),
         stateInit: initCell,
         payload: params.message?.toBoc().toString('base64')
       },

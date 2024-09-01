@@ -5,7 +5,7 @@ const core_1 = require("@ton/core");
 const endpoint_1 = require("../endpoint");
 const basic_1 = require("../../utils/basic");
 const time_1 = require("../../utils/time");
-const transaction_1 = require("../transaction");
+const constants_1 = require("../constants");
 function tonAddr(addr) {
     if (addr instanceof core_1.Address)
         return addr;
@@ -22,7 +22,7 @@ function tonAddrStr(addr) {
     return addr.wallet.address.toString();
 }
 exports.tonAddrStr = tonAddrStr;
-async function tonAddrWaitForActive(addr, timeout = transaction_1.DEFAULT_DELAY_FOR_TR_CONFIRM) {
+async function tonAddrWaitForActive(addr, timeout = constants_1.DEFAULT_DELAY_FOR_TR_CONFIRM) {
     const triggerStart = (0, time_1.getCurrentTimestamp)();
     while (true) {
         const curTimestamp = (0, time_1.getCurrentTimestamp)();

@@ -40,7 +40,7 @@ export async function stonFiPoolCreateTonJet(signer: WalletPair, jetton: string,
       messages: txsParams.map(tx => internal(tx))
     })
   console.log(`[VENUS](ston.fi) ------- SENDING POOL CREATION`)
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(signer, seqNo)
   console.log(`[VENUS](ston.fi) ------- POOL POOL CREATION FINISHED`)
 }
 
@@ -82,5 +82,5 @@ export async function tonPoolCreateJJ (
   //     secretKey: signer.secretKey,
   //     messages: [internal(txsParams)]
   //   })
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(signer, seqNo)
 }

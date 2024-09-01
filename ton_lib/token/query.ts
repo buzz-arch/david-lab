@@ -1,7 +1,7 @@
 import { JettonRoot, JettonWallet } from "@dedust/sdk"
 import { tonGetClient, tonClient, tonApiClient } from '../endpoint';
 import { Address, Dictionary, OpenedContract, Slice, fromNano } from "@ton/core";
-import { TokenHolder, TonTokenDetails, WalletPair } from "../types";
+import { TokenHolder, TonAddress, TonTokenDetails, WalletPair } from "../types";
 import { tonAddr, tonAddrStr } from "../address";
 import { fromDecimalsBN } from '../../utils/bignumber';
 import { JettonHolders, JettonInfo } from "tonapi-sdk-js";
@@ -109,7 +109,12 @@ export async function tonTokenInfo(tokenAddr: Address | string): Promise<TonToke
   // return tokenInfo
 }
 
-export async function tonTokenGetBalance(wallet: Address|string, token: Address | string): Promise<bigint> {
+export async function tonTokenDecimals(tokenAddr: TonAddress): Promise<number> {
+  const tokenInfo = await tonTokenInfo(tonAddr(tokenAddr))
+  return Number(tokenInfo?.decimals)
+}
+
+export async function tonTokenGetBalance(wallet: TonAddress, token: Address | string): Promise<bigint> {
   try {
     const apiClient = await tonApiClient()
     const jBalance = await apiClient.accounts.getAccountJettonBalance(

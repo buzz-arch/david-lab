@@ -6,6 +6,7 @@ const core_1 = require("@ton/core");
 const wallet_1 = require("../wallet");
 const basic_1 = require("../../utils/basic");
 const transaction_1 = require("../transaction");
+const common_1 = require("../common");
 const JettonMinter_compile_1 = require("./contracts/JettonMinter.compile");
 const query_1 = require("./query");
 const accounts_1 = require("../accounts");
@@ -27,19 +28,19 @@ async function deployContract(params, signer) {
     const sender = tonClient.open(signer.wallet).sender(signer.key.secretKey);
     let seqNo;
     console.log(`[DAVID] Deploying Minter ...`);
-    seqNo = await (0, wallet_1.tonWalletGetSeqNo)(signer.wallet);
+    seqNo = await (0, wallet_1.tonWalletGetSeqNo)(signer);
     await jettonMinter.sendDeploy(sender, params.value);
-    await (0, transaction_1.tonTrWait)(signer.wallet, seqNo);
+    await (0, transaction_1.tonTrWait)(signer, seqNo);
     const minterAddr = _contractAddress.toString();
     console.log(`[DAVID] Deployed token: ${minterAddr}`);
     console.log(`[DAVID] Waiting for active state of minter`);
     await (0, accounts_1.tonAccountWaitForActive)(minterAddr);
     console.log(`[DAVID] Minting...`);
-    seqNo = await (0, wallet_1.tonWalletGetSeqNo)(signer.wallet);
+    seqNo = await (0, wallet_1.tonWalletGetSeqNo)(signer);
     console.log(`[DAVID](ton-lib) sending mint transaction...`);
-    await jettonMinter.sendMint(sender, params.mintTo, params.mintAmount, (0, core_1.toNano)(0.02), (0, core_1.toNano)(0.25));
+    await jettonMinter.sendMint(sender, params.mintTo, params.mintAmount, (0, core_1.toNano)(common_1.JETTON_RENT), (0, core_1.toNano)(common_1.JETTON_RENT + 0.01));
     console.log(`[DAVID](ton-lib) mint transaction posted waiting wallet confirmation...`);
-    await (0, transaction_1.tonTrWait)(signer.wallet, seqNo);
+    await (0, transaction_1.tonTrWait)(signer, seqNo);
     console.log(`[DAVID](ton-lib)(MINT) waiting for balance change`);
     while (true) {
         const jBalance = await (0, query_1.tonTokenGetBalance)(params.mintTo, _contractAddress);
@@ -66,7 +67,7 @@ async function uiDeployContract(params, connection) {
         messages: [
             {
                 address: _contractAddress.toString(),
-                amount: params.value.toString(),
+                amount: (0, core_1.toNano)(common_1.DEPLOY_GAS + common_1.JETTON_RENT).toString(),
                 stateInit: initCell,
                 payload: params.message?.toBoc().toString('base64')
             },

@@ -51,7 +51,7 @@ export const buildJettonOffChainMetadata = (contentUri: string) => {
     .endCell();
 }
 
-export const buildJettonOnchainMetadata = (data: any) => {
+export const buildJettonOnchainMetadata = (data: OnChainMetadata) => {
   const dictionary = Dictionary.empty(Dictionary.Keys.Buffer(32), Dictionary.Values.Cell())
 
   Object.entries(data).forEach(([k, v]) => {
@@ -72,6 +72,7 @@ export const buildJettonOnchainMetadata = (data: any) => {
       currentCell = currentCell.storeBuffer(bufferToStore.slice(0, CELL_MAX_SIZE_BYTES))
       bufferToStore = bufferToStore.slice(CELL_MAX_SIZE_BYTES);
       if (bufferToStore.length > 0) {
+        console.log(`[DAVID](buildJettonOnchainMetadata) ------- over max cell size`)
         let newCell = new Cell();
         currentCell.storeRef(newCell);
         currentCell = newCell.asBuilder();
@@ -91,7 +92,7 @@ export const buildJettonOnchainMetadata = (data: any) => {
 
 export const initData = (
   owner: Address,
-  data: any,
+  data: OnChainMetadata,
   offchainUri: string,
 ) => {
   if (!data && !offchainUri) {
@@ -127,7 +128,7 @@ export const mintBody = (
         .storeCoins(jettonValue)
         .storeAddress(null)
         .storeAddress(mintTo)
-        .storeCoins(toNano(0.001))
+        .storeCoins(toNano(0.01))
         .storeBit(false) // forward_payload in this slice, not separate cell
         .endCell(),
     )
@@ -135,7 +136,7 @@ export const mintBody = (
 }
 
 export const createDeployParams = (
-  params: any,
+  params: OnChainMetadata,
   owner: Address,
   mintTo: Address,
   mintAmount: bigint,
@@ -154,12 +155,12 @@ export const createDeployParams = (
 };
 
 export async function tonCreateToken(
-  tokenDetails: any, 
+  tokenDetails: OnChainMetadata, 
   singer: WalletPair, 
   mintAmount: number | undefined = undefined, 
   mintTo: string | undefined = undefined
 ) {
-  const _mintAmount = mintAmount ? toDecimalsBN(mintAmount, tokenDetails.decimals) : toNano(0)
+  const _mintAmount = mintAmount ? toDecimalsBN(mintAmount, tokenDetails.decimals!) : toNano(0)
   const _mintTo = mintTo ? Address.parse(mintTo) : singer.wallet.address
   const deployParams = createDeployParams(tokenDetails, singer.wallet.address, _mintTo, _mintAmount)
   const tokenContract = await deployContract(deployParams, singer)

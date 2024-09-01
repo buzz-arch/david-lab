@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OPCODES = exports.FEE_TOKEN_TRANSFER = exports.ZERO_ADDRESS = void 0;
+exports.DEFAULT_DELAY_FOR_TR_CONFIRM = exports.OPCODES = exports.FEE_TOKEN_TRANSFER = exports.ZERO_ADDRESS = void 0;
 const common_1 = require("../common");
 exports.ZERO_ADDRESS = common_1.NETWORK === 'mainnet'
     ? "UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ"
@@ -10,3 +10,4 @@ var OPCODES;
 (function (OPCODES) {
     OPCODES[OPCODES["TOKEN_INTERNAL_TRANSFER"] = 395134233] = "TOKEN_INTERNAL_TRANSFER";
 })(OPCODES || (exports.OPCODES = OPCODES = {}));
+exports.DEFAULT_DELAY_FOR_TR_CONFIRM = (120 * 1000);

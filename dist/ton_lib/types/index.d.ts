@@ -25,6 +25,7 @@ export interface WalletPair {
     key: KeyPair;
     wallet: WalletContractV4;
 }
+export declare function isWalletPair(param: any): param is WalletPair;
 export interface JettongDeployParam {
     deployer: Address;
     code: Cell;
@@ -45,4 +46,8 @@ export interface TokenHolder {
     who: string;
     balance: string;
     percent: number;
+}
+export interface PoolReserve {
+    base: number;
+    quote: number;
 }

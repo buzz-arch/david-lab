@@ -19,7 +19,7 @@ export async function tonTokenMint(signer: WalletPair, token: Address|string, am
   if (!jettonInfo)
     return
   const decimals = jettonInfo.decimals
-  const seqNo = await tonWalletGetSeqNo(signer.wallet)
+  const seqNo = await tonWalletGetSeqNo(signer)
   await jettonMinter.sendMint(
     sender, 
     mintTo, 
@@ -27,5 +27,5 @@ export async function tonTokenMint(signer: WalletPair, token: Address|string, am
     toNano(0),
     toNano(0.01)
   )
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(signer, seqNo)
 }

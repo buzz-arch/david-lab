@@ -16,13 +16,13 @@ const tonApi = {
 }
 const tonWeb = {
   url: NETWORK === 'mainnet' ? "https://toncenter.com/api/v2/jsonRPC" : "https://testnet.toncenter.com/api/v2/jsonRPC",
-  key: NETWORK === 'mainnet' ? process.env.TONWEB_MAINNET : process.env.TONWEB_TESTNET
+  key: NETWORK === 'mainnet' ? (process.env.TONWEB_MAINNET || process.env.NEXT_PUBLIC_TONWEB_MAINNET) 
+                             : (process.env.TONWEB_TESTNET || process.env.NEXT_PUBLIC_TONWEB_TESTNET)
 }
 
 export const tonGetClient = async () => {
   if (tonClient)
     return tonClient
-  // const endpoint = await getHttpEndpoint({ network: NETWORK == 'testnet' ? "testnet" : "mainnet" });
   tonClient = new TonClient({ endpoint: tonWeb.url, apiKey: tonWeb.key });
   return tonClient
 }

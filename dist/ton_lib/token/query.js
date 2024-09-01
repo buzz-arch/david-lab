@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tonTokenGetHolderList = exports.tonTokenWalletAddress = exports.tonTokenGetBalance = exports.tonTokenInfo = void 0;
+exports.tonTokenGetHolderList = exports.tonTokenWalletAddress = exports.tonTokenGetBalance = exports.tonTokenDecimals = exports.tonTokenInfo = void 0;
 const endpoint_1 = require("../endpoint");
 const core_1 = require("@ton/core");
 const address_1 = require("../address");
@@ -103,6 +103,11 @@ async function tonTokenInfo(tokenAddr) {
     // return tokenInfo
 }
 exports.tonTokenInfo = tonTokenInfo;
+async function tonTokenDecimals(tokenAddr) {
+    const tokenInfo = await tonTokenInfo((0, address_1.tonAddr)(tokenAddr));
+    return Number(tokenInfo?.decimals);
+}
+exports.tonTokenDecimals = tonTokenDecimals;
 async function tonTokenGetBalance(wallet, token) {
     try {
         const apiClient = await (0, endpoint_1.tonApiClient)();

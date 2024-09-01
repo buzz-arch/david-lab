@@ -7,3 +7,16 @@
 [0719/231518.124:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
 [0719/231519.420:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
 [0719/231520.666:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/053847.868:ERROR:icu_util.cc(246)] Couldn't mmap icu data file
+[0723/142045.752:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/142045.938:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/142046.024:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/142047.650:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/142056.729:ERROR:crashpad_client_win.cc(188)] crash server did not respond, self-terminating
+[0723/142056.853:ERROR:crashpad_client_win.cc(188)] crash server did not respond, self-terminating
+[0723/172128.292:ERROR:crashpad_client_win.cc(188)] crash server did not respond, self-terminating
+[0723/172129.392:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/172129.393:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/172129.519:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/172129.808:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)
+[0723/172130.741:ERROR:registration_protocol_win.cc(108)] CreateFile: The system cannot find the file specified. (0x2)

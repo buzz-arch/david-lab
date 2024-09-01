@@ -37,7 +37,7 @@ async function stonFiPoolCreateTonJet(signer, jetton, amountJ, amountT) {
         messages: txsParams.map(tx => (0, ton_1.internal)(tx))
     });
     console.log(`[VENUS](ston.fi) ------- SENDING POOL CREATION`);
-    await (0, transaction_1.tonTrWait)(signer.wallet, seqNo);
+    await (0, transaction_1.tonTrWait)(signer, seqNo);
     console.log(`[VENUS](ston.fi) ------- POOL POOL CREATION FINISHED`);
 }
 exports.stonFiPoolCreateTonJet = stonFiPoolCreateTonJet;
@@ -72,6 +72,6 @@ async function tonPoolCreateJJ(signer, jettonA, jettonB, amountA, amountB) {
     //     secretKey: signer.secretKey,
     //     messages: [internal(txsParams)]
     //   })
-    await (0, transaction_1.tonTrWait)(signer.wallet, seqNo);
+    await (0, transaction_1.tonTrWait)(signer, seqNo);
 }
 exports.tonPoolCreateJJ = tonPoolCreateJJ;

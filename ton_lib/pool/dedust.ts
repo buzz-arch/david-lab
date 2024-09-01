@@ -1,14 +1,17 @@
-import { Factory, MAINNET_FACTORY_ADDR, Asset, PoolType, JettonRoot, VaultJetton, ReadinessStatus, Pool } from '@dedust/sdk';
+import { Factory, MAINNET_FACTORY_ADDR, Asset, PoolType, JettonRoot, VaultJetton, ReadinessStatus, Pool, AssetType } from '@dedust/sdk';
 import { Address, fromNano, internal, OpenedContract, toNano } from '@ton/core';
-import { tonGetClient } from '../endpoint';
+import { tonApiClient, tonGetClient } from '../endpoint';
 import { sleep } from '../../utils/basic';
 import { tonTrWait } from '../transaction';
-import { toDecimalsBN } from '../../utils/bignumber';
-import { WalletPair } from '../types';
-import { tonAddr } from '../address';
+import { fromDecimalsBN, toDecimalsBN } from '../../utils/bignumber';
+import { isWalletPair, PoolReserve, TonAddress, WalletPair } from '../types';
+import { tonAddr, tonAddrStr } from '../address';
 import { tonWalletGetSeqNo } from '../wallet';
-import { ZERO_ADDRESS } from '../constants';
-import { tonTokenInfo } from '../token/query';
+import { DEFAULT_DELAY_FOR_TR_CONFIRM, ZERO_ADDRESS } from '../constants';
+import { tonTokenDecimals, tonTokenGetBalance, tonTokenInfo } from '../token/query';
+import { tonUiSender } from '../token/transfer';
+import { TonConnectUI } from '@tonconnect/ui-react';
+import { getCurrentTimestamp } from '../../utils/time';
 
 export async function dedustGetPool(jetton: Address | string): Promise<OpenedContract<Pool> | undefined> {
   const tonClient = await tonGetClient()
@@ -67,7 +70,6 @@ export async function dedustPoolCreate(
 ): Promise<string> {
 
   const tonClient = await tonGetClient()
-  const walletContract = tonClient.open(signer.wallet)
   const factory = tonClient.open(Factory.createFromAddress(MAINNET_FACTORY_ADDR))
   const sender = tonClient.open(signer.wallet).sender(signer.key.secretKey)
   const jettonAddr = Address.parse(tokenAddr)
@@ -79,11 +81,12 @@ export async function dedustPoolCreate(
 
   // Create a vault
   console.log(`[VENUS](DEDUST) Creating vault...`)
-  seqNo = walletContract.getSeqno()
+  seqNo = await tonWalletGetSeqNo(signer)
   await factory.sendCreateVault(sender, {
     asset: Asset.jetton(jettonAddr),
   });
-  await tonTrWait(signer.wallet)
+  await tonTrWait(signer, seqNo)
+
   const scaleVault = tonClient.open(await factory.getJettonVault(jettonAddr))
   let state = ReadinessStatus.NOT_DEPLOYED
   while (state !== ReadinessStatus.READY) {
@@ -101,35 +104,38 @@ export async function dedustPoolCreate(
   const pool = tonClient.open(await factory.getPool(PoolType.VOLATILE, assets))
   const poolReadiness = await pool.getReadinessStatus();
   if (poolReadiness === ReadinessStatus.NOT_DEPLOYED) {
-    seqNo = await walletContract.getSeqno()
+    seqNo = await tonWalletGetSeqNo(signer)
     await factory.sendCreateVolatilePool(sender, { assets })
-    // wait for pool creation complete
-    await tonTrWait(signer.wallet, seqNo)
+    await tonTrWait(signer, seqNo)
     console.log(`[VENUS](DEDUST) Pool(volatile) created. pool = ${pool.address.toString()}`)
   } else {
     console.log(`[VENUS](DEDUST) Pool(volatile) already exists. pool = ${pool.address.toString()}`)
   }
 
   const amountT = toNano(_amountT)
-  const amountJ = toDecimalsBN(_amountJ, tokenDecimals)
+  if (tokenDecimals === 0) {
+    const tokenDetails = await tonTokenInfo(tokenAddr)
+    tokenDecimals = parseInt(tokenDetails?.decimals || "6")
+  }
+  const amountJ = _amountJ === 0 ? await tonTokenGetBalance(signer, tokenAddr) : toDecimalsBN(_amountJ, tokenDecimals)
   // deposit TON
   const tonVault = tonClient.open(await factory.getNativeVault());
   console.log(`[VENUS](DEDUST) Depositing TON to tonVault(${tonVault.address.toString()})...`)
-  seqNo = await walletContract.getSeqno()
+  seqNo = await tonWalletGetSeqNo(signer)
   await tonVault.sendDepositLiquidity(sender, {
     poolType: PoolType.VOLATILE,
     assets,
     targetBalances: [amountT, amountJ],
     amount: amountT
   })
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(signer, seqNo)
   console.log(`[VENUS](DEDUST) TON deposit finished`)
 
   // Deposit Jetton(SCALE)
   const scaleRoot = tonClient.open(JettonRoot.createFromAddress(jettonAddr));
   const scaleWallet = tonClient.open(await scaleRoot.getWallet(signer.wallet.address));
   console.log(`[VENUS](DEDUST) Jetton Depositing from(scaleWallet.${scaleWallet.address.toString()}) to ${scaleVault.address.toString()} ...`)
-  seqNo = await walletContract.getSeqno()
+  seqNo = await tonWalletGetSeqNo(signer)
   await scaleWallet.sendTransfer(
     sender,
     toNano('0.5'),
@@ -145,7 +151,7 @@ export async function dedustPoolCreate(
       })
     }
   )
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(signer, seqNo)
 
   state = ReadinessStatus.NOT_DEPLOYED
   while (state !== ReadinessStatus.READY) {
@@ -157,19 +163,28 @@ export async function dedustPoolCreate(
   return pool.address.toString()
 }
 
-export const dedustBuy = async (
-  signer: WalletPair,
+export async function dedustBuy(
+  signer: TonConnectUI | WalletPair,
   jetton: string,
   tonAmount: number
-) => {
+) {
 
   const tonClient = await tonGetClient()
-  const walletContract = tonClient.open(signer.wallet)
-  const sender = tonClient.open(signer.wallet).sender(signer.key.secretKey)
+  let sender: any
+  let senderAddr: Address
+  if (isWalletPair(signer)) {
+    sender = tonClient.open(signer.wallet).sender(signer.key.secretKey)
+    senderAddr = signer.wallet.address
+  } else {
+    if (!signer.account?.address)
+      return
+    senderAddr = tonAddr(signer.account?.address!)
+    sender = tonUiSender(signer)
+  }
+
   const TON = Asset.native();
   const SCALE = Asset.jetton(Address.parse(jetton))
   const factory = tonClient.open(Factory.createFromAddress(MAINNET_FACTORY_ADDR))
-  let seqNo = 0
   const swapFee = 0.1
 
   console.log(`[DAVID](ds-ton-lib)(dedust-buy) finding pool ...`)
@@ -182,32 +197,42 @@ export const dedustBuy = async (
   );
   console.log(`[DAVID](ds-ton-lib)(dedust-buy) pool: ${pool.address.toString()}`)
   const tonVault = tonClient.open(await factory.getNativeVault());
-  seqNo = await walletContract.getSeqno()
+  const seqno = await tonWalletGetSeqNo(senderAddr);
   console.log(`[DAVID](ds-ton-lib)(dedust-buy) buying ...`)
   await tonVault.sendSwap(sender, {
     poolAddress: pool.address,
     amount: toNano(tonAmount),
     gasAmount: toNano(swapFee)
   })
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(senderAddr, seqno)
   console.log(`[VENUS](DEDUST) Success to buy`)
 }
 
 export const dedustSell = async (
-  signer: WalletPair,
+  signer: TonConnectUI | WalletPair,
   jetton: string,
   jettonAmount: number
 ) => {
 
   const jettonInfo = await tonTokenInfo(jetton)
   if (!jettonInfo) return
+
   const tonClient = await tonGetClient()
-  const walletContract = tonClient.open(signer.wallet)
-  const sender = tonClient.open(signer.wallet).sender(signer.key.secretKey)
+  let sender: any
+  let senderAddr: Address
+  if (isWalletPair(signer)) {
+    sender = tonClient.open(signer.wallet).sender(signer.key.secretKey)
+    senderAddr = signer.wallet.address
+  } else {
+    if (!signer.account?.address)
+      return
+    senderAddr = tonAddr(signer.account?.address!)
+    sender = tonUiSender(signer)
+  }
+
   const TON = Asset.native();
   const SCALE = Asset.jetton(Address.parse(jetton))
   const factory = tonClient.open(Factory.createFromAddress(MAINNET_FACTORY_ADDR))
-  let seqNo = 0
   const swapFee = 0.25
 
   const [found, message] = await dedustPoolFind(SCALE.address!)
@@ -219,18 +244,18 @@ export const dedustSell = async (
   );
 
   const scaleRoot = tonClient.open(JettonRoot.createFromAddress(SCALE.address!));
-  const scaleWallet = tonClient.open(await scaleRoot.getWallet(signer.wallet.address));
+  const scaleWallet = tonClient.open(await scaleRoot.getWallet(senderAddr));
   const scaleVault = tonClient.open(await factory.getJettonVault(scaleRoot.address));
   const tokenDecimals = parseInt(jettonInfo.decimals!)
-  seqNo = await walletContract.getSeqno()
+  const seqno = await tonWalletGetSeqNo(senderAddr);
   await scaleWallet.sendTransfer(sender, toNano("0.3"), {
     amount: toDecimalsBN(jettonAmount, tokenDecimals),
     destination: scaleVault.address,
-    responseAddress: signer.wallet.address, // return gas to user
+    responseAddress: senderAddr, // return gas to user
     forwardAmount: toNano(swapFee),
     forwardPayload: VaultJetton.createSwapPayload({ poolAddress: pool.address }),
   });
-  await tonTrWait(signer.wallet, seqNo)
+  await tonTrWait(senderAddr, seqno)
   console.log(`[VENUS](DEDUST) Success to sell`)
 }
 
@@ -244,11 +269,11 @@ export async function dedustLPWithdraw(signer: WalletPair, jetton: string, amoun
 
   try {
     const withdrawAmount = amount ? toNano(amount) : await lpWallet.getBalance()
-    const seqNo = await tonWalletGetSeqNo(signer.wallet)
+    const seqNo = await tonWalletGetSeqNo(signer)
     await lpWallet.sendBurn(sender, toNano(0.2), {
       amount: withdrawAmount
     })
-    await tonTrWait(signer.wallet, seqNo)
+    await tonTrWait(signer, seqNo)
   } catch (error) {
     console.log(`[DAVID](DEDUST)(witdraw lp) error :`, error)
   }
@@ -264,18 +289,18 @@ export async function dedustLPBurn(signer: WalletPair, jetton: string, amount: n
 
   try {
     const burnAmount = amount ? toNano(amount) : await lpWallet.getBalance()
-    const seqNo = await tonWalletGetSeqNo(signer.wallet)
+    const seqNo = await tonWalletGetSeqNo(signer)
     await lpWallet.sendTransfer(sender, toNano(0.1), {
       destination: tonAddr(ZERO_ADDRESS),
       amount: burnAmount,
     })
-    await tonTrWait(signer.wallet, seqNo)
+    await tonTrWait(signer, seqNo)
   } catch (error) {
     console.log(`[DAVID](DEDUST)(Burn LP) error :`, error)
   }
 }
 
-export async function dedustLpQuery(who:WalletPair|Address|string, jetton: string): Promise<number> {
+export async function dedustLpQuery(who: WalletPair | Address | string, jetton: string): Promise<number> {
   const pool = await dedustGetPool(jetton)
   if (!pool)
     return 0
@@ -287,5 +312,76 @@ export async function dedustLpQuery(who:WalletPair|Address|string, jetton: strin
     return Number(fromNano(lpAmount))
   } catch (error) {
     return 0
+  }
+}
+
+export async function dedustQueryPoolBalances(jetton: Address|string): Promise<PoolReserve|undefined> {
+  const pool = await dedustGetPool(tonAddr(jetton))
+  if (!pool)
+    return undefined
+  const tokenDecimals = await tonTokenDecimals(jetton)
+  
+  const [assetA, assetB] = await pool.getAssets()
+  const [amountA, amountB] = await pool.getReserves()
+  if (assetA.type === AssetType.NATIVE)
+  {
+    return {
+      base: fromDecimalsBN(amountB, tokenDecimals),
+      quote: Number(fromNano(amountA))
+    }
+  } else {
+    return {
+      base: fromDecimalsBN(amountA, tokenDecimals),
+      quote: Number(fromNano(amountB))
+    }
+  }
+}
+
+// ---------------------- confirmation --------------------
+export async function tonDedustConfirmBuy(
+  who: TonAddress,
+  token: Address | string,
+  callback: any = undefined,
+  timeout: number = DEFAULT_DELAY_FOR_TR_CONFIRM
+) {
+  const apiClient = await tonApiClient()
+  const triggerStart = getCurrentTimestamp()
+
+  console.log(`[DAVID](TON-LIB)(tonDedustConfirmBuy) trigger timestamp: `, Math.floor(triggerStart / 1000))
+  while (true) {
+    await sleep(1000)
+    const curTimeStamp = getCurrentTimestamp()
+    if (curTimeStamp - triggerStart > timeout) {
+      console.log(`[DAVID](TON-LIB)(tonDedustConfirmBuy) ******** timeout **********`)
+      return
+    }
+    try {
+      let events = (await apiClient.accounts.getAccountEvents(
+        tonAddrStr(who),
+        {
+          limit: 1,
+          start_date: Math.floor(triggerStart / 1000)
+        })).events
+      if (events.length <= 0)
+        continue;
+
+      const ev = events[0]
+      const swapAction = ev.actions.find(a => a.type === 'SmartContractExec')
+      const jTrAction = ev.actions.find(a => a.type === 'JettonTransfer')
+      if (!swapAction || !jTrAction)
+        continue
+
+      if (callback) {
+        const jettonInfo = await tonTokenInfo(token)
+        const decimals = jettonInfo?.decimals || 6
+        callback(
+          who,
+          token,
+          Number(fromDecimalsBN(jTrAction.JettonTransfer?.amount!, decimals)),
+          ev.event_id
+        )
+      }
+      return
+    } catch (error) { }
   }
 }

@@ -10,6 +10,7 @@ import { Contract } from "tonweb/dist/types/contract/contract"
 import { Maybe } from "@ton/core/dist/utils/maybe"
 import { tonAddr } from "../address"
 import { TonConnectUI } from "@tonconnect/ui-react"
+import { tonWalletGetSeqNo } from "../wallet"
 
 export async function tonTokenTransfer(signer: WalletPair, token: string, to: string, amount: number, forwardPayload: Cell | undefined = undefined, forwardAmount: number | undefined = undefined) {
   const tonClient = await tonGetClient()
@@ -29,7 +30,7 @@ export async function tonTokenTransfer(signer: WalletPair, token: string, to: st
     forwardAmount: toNano(forwardAmount || 0),
     forwardPayload: forwardPayload || Cell.EMPTY,
   })
-  await tonTrWait(wallet, seqNo)
+  await tonTrWait(signer, seqNo)
   console.log(`[DAVID](TON-TOKEN) tonTokenTransfer :: ${amount} jetton(${token}) transfered from ${wallet.address.toString()} - ${to}`)
 }
 
@@ -70,7 +71,7 @@ export async function tonUiTokenTransfer(
   const jettonWallet = tonClient.open(await jetton.getWallet(senderAddr))
   const jettonDetails = await tonTokenInfo(token)
   const trAmount = toDecimalsBN(amount, jettonDetails?.decimals || 6)
-
+  const seqno = await tonWalletGetSeqNo(senderAddr);
   await jettonWallet.sendTransfer(sender, toNano(0.25 + (forwardAmount || 0)), {
     destination: Address.parse(to),
     amount: trAmount,
@@ -78,6 +79,6 @@ export async function tonUiTokenTransfer(
     forwardAmount: toNano(forwardAmount || 0),
     forwardPayload: forwardPayload || Cell.EMPTY,
   })
-
+  await tonTrWait(senderAddr, seqno)
   console.log(`[DAVID](TON-TOKEN) tonTokenTransfer :: ${amount} jetton(${token}) transfered from ${senderAddr} - ${to}`)
 }
