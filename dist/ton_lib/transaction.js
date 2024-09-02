@@ -110,11 +110,10 @@ async function tonTrConfirmTokenTransfer(who, token, from = undefined, callback 
                 limit: 1,
                 start_date: Math.floor(triggerStart / 1000)
             })).events;
-            console.log(`[DAVID](TON-LIB)(tonTrConfirmTokenTransfer) ******** event detected :: `, events)
             if (events.length > 0) {
                 const ev = events[0];
                 const action = ev.actions.find(a => a.type === 'JettonTransfer');
-                console.log(`[DAVID](TON-LIB)(tonTrConfirmTokenTransfer) ******** Jetton Transfer action :: `, action)
+                console.log(`[DAVID](TON-LIB)(tonTrConfirmTokenTransfer) ******** Jetton Transfer action :: `, ((0, address_1.tonAddrStr)(token) === core_1.Address.normalize(action.JettonTransfer?.jetton.address)), (!from || core_1.Address.normalize(action.JettonTransfer?.sender?.address) === (0, address_1.tonAddrStr)(from)))
                 if (action &&
                     ((0, address_1.tonAddrStr)(token) === core_1.Address.normalize(action.JettonTransfer?.jetton.address)) &&
                     (!from || core_1.Address.normalize(action.JettonTransfer?.sender?.address) === (0, address_1.tonAddrStr)(from))) {
