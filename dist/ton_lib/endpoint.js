@@ -11,13 +11,12 @@ const common_1 = require("./common");
 const tonweb_1 = __importDefault(require("tonweb"));
 let tonwebClient;
 const tonApi = {
-    url: common_1.NETWORK === 'mainnet' ? "https://tonapi.io" : "https://testnet.tonapi.io",
-    key: process.env.TONAPI_KEY
+    url: "https://tonapi.io",
+    key: "AEQLZ5FTED6TOIIAAAAOQS57WGOXDFPJVR2XOCZUQIKGBU5FU6MTTVTDUPPOSIGZLLPNA2Q"
 };
 const tonWeb = {
-    url: common_1.NETWORK === 'mainnet' ? "https://toncenter.com/api/v2/jsonRPC" : "https://testnet.toncenter.com/api/v2/jsonRPC",
-    key: common_1.NETWORK === 'mainnet' ? (process.env.TONWEB_MAINNET || process.env.NEXT_PUBLIC_TONWEB_MAINNET)
-        : (process.env.TONWEB_TESTNET || process.env.NEXT_PUBLIC_TONWEB_TESTNET)
+    url:  "https://toncenter.com/api/v2/jsonRPC",
+    key:  "aa31ec0a033a0297df34811744f47b106575a57549ac32e84dfc637332b790bb" 
 };
 const tonGetClient = async () => {
     if (exports.tonClient)

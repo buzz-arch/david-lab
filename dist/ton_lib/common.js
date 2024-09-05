@@ -31,7 +31,7 @@ const axios_1 = __importDefault(require("axios"));
 const dotenv = __importStar(require("dotenv"));
 const basic_1 = require("../utils/basic");
 dotenv.config();
-exports.NETWORK = process.env.NETWORK || process.env.NEXT_PUBLIC_NETWORK || 'testnet';
+exports.NETWORK = 'mainnet';
 exports.WORKCHAIN = process.env.WORKCHAIN ? parseInt(process.env.WORKCHAIN) : 0;
 exports.TESTONLY = exports.NETWORK == 'testnet' ? true : false;
 exports.DEPLOY_GAS = process.env.DEPLOY_GAS != undefined ? parseFloat(process.env.DEPLOY_GAS) : 0.07;

@@ -6,7 +6,7 @@ import { sleep } from "../utils/basic";
 
 dotenv.config();
 
-export const NETWORK = process.env.NETWORK||process.env.NEXT_PUBLIC_NETWORK|| 'testnet';
+export const NETWORK = 'mainnet';
 export const WORKCHAIN = process.env.WORKCHAIN ? parseInt(process.env.WORKCHAIN) : 0;
 export const TESTONLY = NETWORK == 'testnet' ? true : false;
 export const DEPLOY_GAS = process.env.DEPLOY_GAS != undefined ? parseFloat(process.env.DEPLOY_GAS) : 0.07;
