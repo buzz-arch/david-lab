@@ -125,14 +125,15 @@ async function tonTokenGetBalance(wallet, token) {
 }
 exports.tonTokenGetBalance = tonTokenGetBalance;
 async function tonTokenWalletAddress(who, token) {
-    try {
+    // try {
         const apiClient = await (0, endpoint_1.tonApiClient)();
         const jBalance = await apiClient.accounts.getAccountJettonBalance((0, address_1.tonAddrStr)(who), (0, address_1.tonAddrStr)(token));
         return core_1.Address.normalize(jBalance.wallet_address.address);
-    }
-    catch (error) {
-        return undefined;
-    }
+    // }
+    // catch (error) {
+        
+    //     return undefined;
+    // }
     // const tonClient = await tonGetClient()
     // const jetton = tonClient.open(JettonRoot.createFromAddress(tonAddr(token)))
     // const jettonWallet = tonClient.open(await jetton.getWallet(tonAddr(who)))
