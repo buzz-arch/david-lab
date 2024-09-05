@@ -48,7 +48,7 @@ export const tonApiClient = async () => {
   if (tonApi.key) {
     headers.Authorization = `Bearer ${tonApi.key}`;
   }
-
+  console.log("debug tonAPI data ====>", tonApi)
   const httpClient = new HttpClient({
     baseUrl: tonApi.url,
     baseApiParams: {
