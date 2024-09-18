@@ -33,7 +33,7 @@
     "@aws-crypto/sha256-js": "^5.2.0",
     "@dedust/sdk": "^0.8.7",
     "@orbs-network/ton-access": "^2.3.3",
-    "@ston-fi/sdk": "^1.0.0",
+    "@ston-fi/sdk": "^2.0.0-rc.3",    
     "@ton/core": "^0.56.3",
     "@ton/ton": "^13.11.2",
     "@tonconnect/ui-react": "^2.0.6",
